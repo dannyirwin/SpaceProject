@@ -12,14 +12,19 @@ let planets = [];
 class StarScape {
 	constructor() {
 		this.stars = [];
+		this.resizeStarScape();
 	}
-	setCavasFullScreen() {
+	resizeStarScape() {
 		canvas.width = window.innerWidth;
 		canvas.height = window.innerHeight;
-	}
 
-	generateStars(nStars) {
-		for (let i = 0; i < nStars; i++) {
+		this.starts = [];
+		this.generateStars();
+
+	}
+	generateStars() {
+		let n = canvas.width * canvas.height / 750;
+		for (let i = 0; i < n; i++) {
 			this.stars[i] = {
 				x: Math.random() * canvas.width,
 				y: Math.random() * canvas.height,
@@ -60,6 +65,9 @@ class StarScape {
 		}
 		ctx.restore();
 	}
+	render() {
+		this.drawStars();
+	}
 }
 
 class CelestialBody {
@@ -67,12 +75,14 @@ class CelestialBody {
 		this.radius = radius
 	}
 	drawCircle(x, y, radius, style) {
+		ctx.save();
 		ctx.beginPath();
 		ctx.fillStyle = style;
 		ctx.strokeStyle = style;
 		ctx.arc(x, y, radius, 0, 2 * Math.PI);
 		ctx.stroke();
 		ctx.fill();
+		ctx.restore();
 	}
 	drawAtmosphere(x, y, depth, style) {
 		let radius = this.radius + depth;
@@ -80,8 +90,11 @@ class CelestialBody {
 		this.drawCircle(x, y, radius, style);
 	}
 	drawGlow(glowDistance, style) {
+
+		ctx.save();
 		ctx.shadowBlur = glowDistance;
 		ctx.shadowColor = style;
+		ctx.restore();
 	}
 }
 
@@ -94,7 +107,7 @@ class Sun extends CelestialBody {
 		this.x = canvas.width / 2;
 		this.y = canvas.height / 2;
 	}
-	drawSun() {
+	render() {
 
 		ctx.save();
 
@@ -138,7 +151,7 @@ class Planet extends CelestialBody {
 
 	}
 
-	drawPlanet() {
+	render() {
 		let x = this.x;
 		let y = this.y;
 
@@ -204,29 +217,29 @@ class Planet extends CelestialBody {
 
 }
 
-
 //=====Functions=====//
 
 function init() {
 	createCelestialObjects();
-	starScape.generateStars(500);
 	requestAnimationFrame(updateAnimations);
 }
 
 function updateAnimations() {
-	starScape.drawStars();
-	sun.drawSun();
-	planets.forEach(planet => planet.drawPlanet());
+	starScape.render();
+	sun.render();
+	planets.forEach(planet => planet.render());
 	requestAnimationFrame(updateAnimations);
 }
 
 function createCelestialObjects() {
 	starScape = new StarScape();
-	starScape.setCavasFullScreen();
 	sun = new Sun(25);
 
-	planets.push(new Planet(30, "TestPlanet1", 150, "blue"), new Planet(15, "TestPlanet2", 225, "green"),  new Planet(10, "TestPlanet2", 250, "purple"),  new Planet(20, "TestPlanet2", 350, "pink"));
- }
+	planets.push(new Planet(30, "TestPlanet1", 150, "blue"),
+		new Planet(15, "TestPlanet2", 225, "green"),
+		new Planet(10, "TestPlanet2", 250, "purple"),
+		new Planet(20, "TestPlanet2", 350, "pink"));
+}
 
 function testStuff() {
 	console.log("testFunction called");
@@ -236,6 +249,10 @@ function testStuff() {
 
 window.addEventListener('load', (event) => {
 	init();
+});
+
+window.addEventListener('resize', (event) => {
+	starScape.resizeStarScape();
 });
 
 //TODO Add real world physics (Mass, gravitational constant, orbital periods etc).
