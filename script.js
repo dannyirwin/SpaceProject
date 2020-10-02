@@ -147,30 +147,30 @@ class Planet extends CelestialBody {
 		this.orbitalAngle = Math.random() * 360;
 		this.orbitalSpeed = Math.random()
 		this.fillStyle = style
+		this.moons = []
 		this.setNextPosition();
-
+		this.x = 0;
+		this.y = 0;
+		this.xCenter = canvas.width / 2;
+		this.yCenter = canvas.height / 2;
 	}
 
 	render() {
 		let x = this.x;
 		let y = this.y;
 
-		this.drawOrbitalPath();
+		this.drawOrbitalPath(0.2);
+		this.drawMoons();
 		this.drawCircle(x, y, this.radius, this.fillStyle);
 		this.drawShaddow();
-
 		this.setNextPosition();
 	}
-	drawOrbitalPath() {
-		let xCenter = canvas.width / 2;
-		let yCenter = canvas.height / 2;
+	drawOrbitalPath(alpha) {
 		ctx.save();
-
 		ctx.beginPath();
-		ctx.strokeStyle = "rgba(225, 225, 225, 0.2)";
-		ctx.arc(xCenter, yCenter, this.orbitalRadius, 0, 2 * Math.PI);
+		ctx.strokeStyle = "rgba(225, 225, 225, " +  alpha + ")";
+		ctx.arc(this.xCenter, this.yCenter, this.orbitalRadius, 0, 2 * Math.PI);
 		ctx.stroke();
-
 		ctx.restore();
 	}
 	drawShaddow() {
@@ -203,10 +203,24 @@ class Planet extends CelestialBody {
 		ctx.fill();
 		ctx.restore();
 	}
+	drawMoons() {
+		if (this.moons.length > 0) {
+			this.moons.forEach((moon) => {
+				moon.xCenter = this.x;
+				moon.yCenter = this.y;
+				moon.render();
+			});
+		}
+	}
+	setCenterPosition() {
+		this.xCenter = canvas.width / 2;
+		this.yCenter = canvas.height / 2;
+		console.log(this.xCenter);
+	}
 	setNextPosition() {
 		let orbitalRadius = this.orbitalRadius;
-		let xCenter = canvas.width / 2;
-		let yCenter = canvas.height / 2;
+		let xCenter = this.xCenter;
+		let yCenter = this.yCenter;
 		let angle = (this.orbitalAngle - this.orbitalSpeed) % 360;
 		let rad = angle * Math.PI / 180;
 
@@ -215,6 +229,20 @@ class Planet extends CelestialBody {
 		this.orbitalAngle = angle;
 	}
 
+}
+
+class Moon extends Planet {
+	constructor(radius, name, orbitalRadius, style) {
+		super(radius, name, orbitalRadius, style);
+		this.xCenter = 0;
+		this.yCetner = 0;
+	}
+	render() {
+		this.drawOrbitalPath(0.1);
+		this.drawCircle(this.x, this.y, this.radius, this.fillStyle);
+		this.drawShaddow();
+		this.setNextPosition();
+	}
 }
 
 //=====Functions=====//
@@ -227,7 +255,9 @@ function init() {
 function updateAnimations() {
 	starScape.render();
 	sun.render();
-	planets.forEach(planet => planet.render());
+	planets.forEach(planet => {
+		planet.render()
+	});
 	requestAnimationFrame(updateAnimations);
 }
 
@@ -239,6 +269,10 @@ function createCelestialObjects() {
 		new Planet(15, "TestPlanet2", 225, "green"),
 		new Planet(10, "TestPlanet2", 250, "purple"),
 		new Planet(20, "TestPlanet2", 350, "pink"));
+
+	planets[0].moons[0] = new Moon(1, "moon1", 40, "orange");
+	planets[0].moons[1] = new Moon(2, "moon1", 50, "pink");
+	planets[3].moons[0] = new Moon(1, "moon1", 45, "yellow");
 }
 
 function testStuff() {
@@ -253,6 +287,11 @@ window.addEventListener('load', (event) => {
 
 window.addEventListener('resize', (event) => {
 	starScape.resizeStarScape();
+	planets.forEach(planet => {
+		planet.setCenterPosition();
+	})
 });
+
+
 
 //TODO Add real world physics (Mass, gravitational constant, orbital periods etc).
